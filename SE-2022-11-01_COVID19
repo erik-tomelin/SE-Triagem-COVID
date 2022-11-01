@@ -1,0 +1,110 @@
+:- dynamic COVID/3.
+
+%-------------------------------------------------------%
+
+COVID :- load('COVID.bd'),
+    format('COVID para COVID~n~n'),
+    repeat,
+    paciente(x),
+    temperatura(x),
+    freqCardiaca(x),
+    freqRespiratoria(x),
+    PASistolica(x),
+    saO2(x),
+    dispneia(x),
+    idade(x),
+    comorbidades(x),
+    Resposta = n, 
+    !,
+    save(paciente, 'COVID.bd').
+
+save(Paciente, Data) :-
+    tell(Data),
+    listing(Paciente),
+    told.
+
+load(File) :-
+    exists_file(File),
+    consult(File);
+    true.
+
+gets(String) :-
+    read_line_to_codes(user_input,Char),
+    name(String,Char).
+
+%-------------------------------------------------------%
+
+paciente(x) :- 
+    format('Informe o nome do paciente: '),
+    gets(x).
+
+temperatura(x) :- 
+    format('Informe a temperatura corporal do paciente: '),
+    gets(Temperature),
+    asserta(criterios(x, temperatura, Temperature)).
+
+freqCardiaca(x) :- 
+    format('Informe a frequencia cardiaca do paciente: '),
+    gets(FreqCardiaca),
+    asserta(criterios(x, freqCardiaca, FreqCardiaca)).
+
+freqRespiratoria(x) :- 
+    format('Informe a frequencia respiratória do paciente: '),
+    gets(Resp),
+    asserta(criterios(x, freqRespiratoria, Resp)).
+
+PASistolica(x) :-
+    format('Informe a Pressão Arterial Sistólica do paciente: '),
+    gets(Pressao),
+    asserta(criterios(x, PASistolica, Pressao)).
+
+saO2(x) :-
+    format('Informe a saturação de oxigênio (saO2) do paciente: '),
+    gets(Saturacao),
+    asserta(criterios(x, saO2, Saturacao)).
+
+dispneia(x) :-
+    format('O paciente esta com algum sintoma de dispneia (s/n)? '),
+    gets(Dispneia),
+    asserta(criterios(x, dispneia, Dispneia)).
+
+idade(x) :-
+    format('Informe a idade do paciente: '),
+    gets(Idade),
+    asserta(criterios(x, idade, Idade)).
+
+comorbidades(x) :-
+    format('Informe a quantidade de comorbidades do paciente: '),
+    gets(Comorbidades),
+    asserta(criterios(x, dispneia, Comorbidades)).
+
+%-------------------------------------------------------%
+
+gravidade(Paciente, leve) :- 
+    criterios(Paciente, temperatura, Resp), Resp > 35 ,Resp =< 37;
+    criterios(Paciente, freqCardiaca, Resp), Resp < 100;
+    criterios(Paciente, freqRespiratoria, Resp), Resp < 18;
+    criterios(Paciente, PASistolica, Resp), Resp > 100;
+    criterios(Paciente, saO2, Resp), Resp >= 95;
+    criterios(Paciente, dispneia, Resp), Resp = "n";
+    criterios(Paciente, idade, Resp), Resp < 60;
+    criterios(Paciente, comorbidades, Resp), Resp = 0.
+
+gravidade(Paciente, medio) :- 
+    criterios(Paciente, temperatura, Resp), (Resp < 35; (Resp >= 37, Resp =< 39)) ;
+    criterios(Paciente, freqCardiaca, Resp), Resp > 100;
+    criterios(Paciente, freqRespiratoria, Resp), Resp > 19, Resp < 30;
+    criterios(Paciente, idade, Resp), Resp > 60, Resp < 79;
+    criterios(Paciente, comorbidades, Resp), Resp = 1.
+
+gravidade(Paciente, grave) :- 
+    criterios(Paciente, temperatura, Resp), Resp > 39;
+    criterios(Paciente, PASistolica, Resp), Resp >= 90, Resp =< 100; 
+    criterios(Paciente, idade, Resp), Resp > 80;
+    criterios(Paciente, comorbidades, Resp), Resp > 2.
+
+gravidade(Paciente, muitoGrave) :- 
+    criterios(Paciente, freqRespiratoria, Resp), Resp > 30;
+    criterios(Paciente, PASistolica, Resp), Resp < 90; 
+    criterios(Paciente, saO2, Resp), Resp < 95; 
+    criterios(Paciente, dispneia, Resp), Resp = "s". 
